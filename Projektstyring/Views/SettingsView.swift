@@ -11,6 +11,7 @@ struct SettingsView: View {
     @AppStorage(SettingsKey.showNotesOnCards) private var showNotes = false
     @AppStorage(SettingsKey.remindersEnabled) private var remindersEnabled = true
     @AppStorage(SettingsKey.reminderHour) private var reminderHour = 9
+    @AppStorage(SettingsKey.autoCloseCalendar) private var autoCloseCalendar = true
 
     var body: some View {
         NavigationStack {
@@ -38,6 +39,15 @@ struct SettingsView: View {
                     Text("Forsiden")
                 } footer: {
                     Text("Slå fra for et renere overblik. Noter og mærkater kan altid ses inde i opgaven.")
+                }
+
+                Section {
+                    Toggle("Luk kalenderen ved valg af dato", isOn: $autoCloseCalendar)
+                        .themedRow()
+                } header: {
+                    Text("Kalender")
+                } footer: {
+                    Text("Når den er slået fra, bliver kalenderen stående, til du trykker på datoen igen.")
                 }
 
                 Section {

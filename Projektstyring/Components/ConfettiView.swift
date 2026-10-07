@@ -13,6 +13,8 @@ struct ConfettiView: View {
                     ConfettiPiece(model: piece, area: geo.size)
                 }
             }
+            // Tegnes som ét billede på grafikkortet i stedet for 80 separate lag.
+            .drawingGroup()
         }
         .allowsHitTesting(false)
         .ignoresSafeArea()
@@ -23,7 +25,7 @@ struct ConfettiView: View {
 
     private func burst() {
         let colors: [Color] = [Theme.accent, Urgency.later.color, Urgency.done.color, Urgency.thisMonth.color, Theme.surface]
-        pieces = (0..<80).map { _ in
+        pieces = (0..<60).map { _ in
             ConfettiPiece.Model(
                 color: colors.randomElement() ?? Theme.accent,
                 startX: CGFloat.random(in: 0.4...0.6),

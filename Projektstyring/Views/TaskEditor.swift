@@ -100,9 +100,7 @@ struct TaskEditor: View {
                         .padding(.vertical, 2)
                     }
                     .themedRow()
-                    DatePicker("Deadline", selection: $dueDate, displayedComponents: .date)
-                        .datePickerStyle(.graphical)
-                        .tint(Theme.accent)
+                    DateField(title: "Deadline", date: $dueDate)
                         .themedRow()
                 } header: {
                     Text("Termin")
@@ -125,9 +123,8 @@ struct TaskEditor: View {
                         ForEach($drafts) { $draft in
                             VStack(alignment: .leading, spacing: 8) {
                                 TextField("Underopgave", text: $draft.title)
-                                DatePicker("Termin", selection: $draft.dueDate, displayedComponents: .date)
+                                DateField(title: "Termin", date: $draft.dueDate)
                                     .font(.subheadline)
-                                    .foregroundStyle(.secondary)
                             }
                             .padding(.vertical, 2)
                             .themedRow()
@@ -262,8 +259,7 @@ struct SubtaskEditor: View {
                 }
 
                 Section {
-                    DatePicker("Termin", selection: $dueDate, displayedComponents: .date)
-                        .tint(Theme.accent)
+                    DateField(title: "Termin", date: $dueDate)
                         .themedRow()
                     if isAfterParentDeadline {
                         Label {

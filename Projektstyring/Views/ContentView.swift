@@ -73,6 +73,11 @@ struct ContentView: View {
     }
 
     var body: some View {
+        // Udregnes én gang pr. opdatering i stedet for flere gange rundt i visningen.
+        let sections = self.sections
+        let allTags = self.allTags
+        let hasHigh = hasHighPriority
+
         NavigationStack(path: $path) {
             ScrollViewReader { proxy in
                 List {
@@ -94,8 +99,8 @@ struct ContentView: View {
                     .pickerStyle(.segmented)
                     .plainRow(top: 4, bottom: 4)
 
-                    if (showTags && !allTags.isEmpty) || hasHighPriority {
-                        tagFilter
+                    if (showTags && !allTags.isEmpty) || hasHigh {
+                        tagFilter(allTags, hasHigh: hasHigh)
                             .plainRow(top: 2, bottom: 2, horizontal: 0)
                     }
 
@@ -183,10 +188,10 @@ struct ContentView: View {
         }
     }
 
-    private var tagFilter: some View {
+    private func tagFilter(_ allTags: [String], hasHigh: Bool) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                if hasHighPriority {
+                if hasHigh {
                     Button {
                         withAnimation(.snappy) { onlyHighPriority.toggle() }
                     } label: {
@@ -315,11 +320,13 @@ struct ContentView: View {
             Image(systemName: "plus")
                 .font(.title2.weight(.bold))
                 .foregroundStyle(Color(hex: 0xFBFAFC))
-                .frame(width: 62, height: 62)
-                // Liquid Glass (iOS 26+) tonet i appens primærfarve. Glasset reagerer selv på tryk.
-                .glassEffect(.regular.tint(Theme.accent).interactive(), in: Circle())
+                .frame(width: 48, height: 48)
         }
-        .buttonStyle(.plain)
+        // Apples egen Liquid Glass-knap (iOS 26+), tonet i primærfarven.
+        // Den håndterer selv tryk-animationen, så trykket registreres med det samme.
+        .buttonStyle(.glassProminent)
+        .buttonBorderShape(.circle)
+        .tint(Theme.accent)
         .sensoryFeedback(.impact(weight: .medium), trigger: showingNewTask)
         .padding(.trailing, 22)
         .padding(.bottom, 12)

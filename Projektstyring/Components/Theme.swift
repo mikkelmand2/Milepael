@@ -74,6 +74,7 @@ enum SettingsKey {
     static let showNotesOnCards = "showNotesOnCards"
     static let remindersEnabled = "remindersEnabled"
     static let reminderHour = "reminderHour"
+    static let autoCloseCalendar = "autoCloseCalendar"
 }
 
 extension View {
