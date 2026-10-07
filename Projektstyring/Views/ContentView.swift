@@ -267,7 +267,7 @@ struct ContentView: View {
                 .font(.title2.weight(.bold))
                 .foregroundStyle(Color(hex: 0xFBFAFC))
                 .frame(width: 62, height: 62)
-                .background(Circle().fill(Theme.accent))
+                .background(Circle().fill(LinearGradient(colors: [Theme.accent, Theme.accentDeep], startPoint: .topLeading, endPoint: .bottomTrailing)))
         }
         .buttonStyle(PressableButtonStyle(scale: 0.88))
         .sensoryFeedback(.impact(weight: .medium), trigger: showingNewTask)

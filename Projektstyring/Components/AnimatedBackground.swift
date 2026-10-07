@@ -7,7 +7,7 @@ struct AnimatedBackground: View {
 
     var body: some View {
         LinearGradient(
-            colors: [tint.opacity(0.08), Theme.background, Theme.background],
+            colors: [tint.opacity(0.12), Theme.background, Theme.background],
             startPoint: .top,
             endPoint: .center
         )

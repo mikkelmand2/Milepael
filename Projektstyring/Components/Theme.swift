@@ -3,16 +3,18 @@ import UIKit
 
 /// Appens farver. Mørk tilstand er aldrig helt sort, lys tilstand aldrig helt hvid.
 enum Theme {
-    /// Dæmpet rosa accent (afledt af 255, 64, 140), bruges sparsomt.
-    static let accent = Color(light: 0xC2557F, dark: 0xE0809F)
-    static let accentSoft = Color(light: 0xF3E1E8, dark: 0x463A3F)
+    /// Primærfarve: dyb safirblå/indigo. Mættet, men ikke neon.
+    static let accent = Color(light: 0x4256D0, dark: 0x8A98F5)
+    /// Lidt mere violet nuance, bruges sammen med accent i gradienter.
+    static let accentDeep = Color(light: 0x6A47C9, dark: 0xA78BF0)
+    static let accentSoft = Color(light: 0xE2E5F8, dark: 0x3A3D55)
 
     /// Baggrund: #2E2E2E i mørk, varm off-white i lys.
-    static let background = Color(light: 0xF3F1F4, dark: 0x2E2E2E)
+    static let background = Color(light: 0xF2F2F7, dark: 0x2E2E2E)
     /// Kort og felter ovenpå baggrunden.
-    static let surface = Color(light: 0xFBFAFC, dark: 0x3A3A3C)
+    static let surface = Color(light: 0xFAFAFD, dark: 0x3A3A3C)
     /// Lidt kraftigere flade, fx til spor bag bjælker.
-    static let surfaceRaised = Color(light: 0xE9E6EC, dark: 0x48484A)
+    static let surfaceRaised = Color(light: 0xE6E7EF, dark: 0x48484A)
 }
 
 extension Color {

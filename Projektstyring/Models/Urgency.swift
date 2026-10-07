@@ -36,15 +36,15 @@ enum Urgency: Int, CaseIterable, Identifiable {
     /// De fem grupper, en aktiv opgave kan ligge i.
     static let activeCases: [Urgency] = [.overdue, .today, .thisWeek, .thisMonth, .later]
 
-    /// Afdæmpede farver, lidt lysere i mørk tilstand så de kan læses på #2E2E2E.
+    /// Rige, men ikke neon farver. Lidt lysere i mørk tilstand så de kan læses på #2E2E2E.
     var color: Color {
         switch self {
-        case .overdue: return Color(light: 0xC0474A, dark: 0xE07073)
-        case .today: return Color(light: 0xC2643A, dark: 0xE0906A)
-        case .thisWeek: return Color(light: 0xB37A2E, dark: 0xD9A55E)
-        case .thisMonth: return Color(light: 0x8F7E35, dark: 0xCDBB6E)
-        case .later: return Color(light: 0x4A75A8, dark: 0x82A9D6)
-        case .done: return Color(light: 0x3F8A5C, dark: 0x7CC296)
+        case .overdue: return Color(light: 0xD2453F, dark: 0xF2766C)
+        case .today: return Color(light: 0xE0702A, dark: 0xF59A55)
+        case .thisWeek: return Color(light: 0xC9951A, dark: 0xF0C350)
+        case .thisMonth: return Color(light: 0x1F9488, dark: 0x5ECBBB)
+        case .later: return Color(light: 0x2F80C8, dark: 0x72B2EE)
+        case .done: return Color(light: 0x2E9A5C, dark: 0x6BCB8D)
         }
     }
 
