@@ -316,9 +316,10 @@ struct ContentView: View {
                 .font(.title2.weight(.bold))
                 .foregroundStyle(Color(hex: 0xFBFAFC))
                 .frame(width: 62, height: 62)
-                .background(Circle().fill(LinearGradient(colors: [Theme.accent, Theme.accentDeep], startPoint: .topLeading, endPoint: .bottomTrailing)))
+                // Liquid Glass (iOS 26+) tonet i appens primærfarve. Glasset reagerer selv på tryk.
+                .glassEffect(.regular.tint(Theme.accent).interactive(), in: Circle())
         }
-        .buttonStyle(PressableButtonStyle(scale: 0.88))
+        .buttonStyle(.plain)
         .sensoryFeedback(.impact(weight: .medium), trigger: showingNewTask)
         .padding(.trailing, 22)
         .padding(.bottom, 12)
