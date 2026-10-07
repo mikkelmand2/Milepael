@@ -22,12 +22,23 @@ enum ReminderScheduler {
         let hour = defaults.object(forKey: SettingsKey.reminderHour) as? Int ?? 9
         let center = UNUserNotificationCenter.current()
 
+        let tasks = (try? context.fetch(FetchDescriptor<TaskItem>())) ?? []
+
         guard enabled else {
             center.removeAllPendingNotificationRequests()
+            center.setBadgeCount(0)
             return
         }
 
-        let tasks = (try? context.fetch(FetchDescriptor<TaskItem>())) ?? []
+        // Tallet på app-ikonet: opgaver og underopgaver der er over tid eller skal laves i dag.
+        let badge = tasks.filter { !$0.isDone }.reduce(0) { count, task in
+            let own = task.urgency.rawValue <= Urgency.today.rawValue ? 1 : 0
+            let subs = (task.subtasks ?? []).filter {
+                !$0.isDone && $0.urgency.rawValue <= Urgency.today.rawValue
+            }.count
+            return count + own + subs
+        }
+        center.setBadgeCount(badge)
         let now = Date()
         var reminders: [Reminder] = []
 

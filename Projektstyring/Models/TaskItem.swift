@@ -43,14 +43,29 @@ final class SubTask {
     var dueDate: Date = Date()
     var createdAt: Date = Date()
     var isDone: Bool = false
+    var completedAt: Date? = nil
+    var priorityRaw: Int = 1
     /// Klar til deling senere: hvem underopgaven er tildelt.
     var assignee: String = ""
     var parent: TaskItem? = nil
 
-    init(title: String, dueDate: Date) {
+    init(title: String, dueDate: Date, priority: Priority = .normal) {
         self.title = title
         self.dueDate = dueDate
+        self.priorityRaw = priority.rawValue
     }
+}
+
+extension SubTask {
+    var priority: Priority {
+        get { Priority(rawValue: priorityRaw) ?? .normal }
+        set { priorityRaw = newValue.rawValue }
+    }
+
+    var urgency: Urgency { Urgency(dueDate: dueDate, isDone: isDone) }
+
+    /// Over tid, i dag eller inden for 7 dage.
+    var isSoon: Bool { !isDone && urgency.rawValue <= Urgency.thisWeek.rawValue }
 }
 
 enum Priority: Int, CaseIterable, Identifiable {
@@ -118,6 +133,18 @@ extension TaskItem {
 
     var urgency: Urgency { Urgency(dueDate: dueDate, isDone: isDone) }
 
+    /// Åbne underopgaver, der er over tid eller forfalder inden for 7 dage.
+    var soonSubtasks: [SubTask] {
+        (subtasks ?? []).filter { $0.isSoon }.sorted { $0.dueDate < $1.dueDate }
+    }
+
+    /// Den mest presserende farve for opgaven, inkl. dens åbne underopgaver.
+    var effectiveUrgency: Urgency {
+        guard !isDone else { return .done }
+        let subtaskUrgencies = (subtasks ?? []).filter { !$0.isDone }.map(\.urgency)
+        return ([urgency] + subtaskUrgencies).min { $0.rawValue < $1.rawValue } ?? urgency
+    }
+
     var hasOverdueSubtask: Bool {
         (subtasks ?? []).contains { Urgency(dueDate: $0.dueDate, isDone: $0.isDone) == .overdue }
     }
@@ -135,6 +162,7 @@ extension TaskItem {
     @discardableResult
     func toggleSubtask(_ subtask: SubTask) -> Bool {
         subtask.isDone.toggle()
+        subtask.completedAt = subtask.isDone ? Date() : nil
         let all = subtasks ?? []
         if !all.isEmpty && all.allSatisfy({ $0.isDone }) {
             if !isDone {
@@ -154,7 +182,10 @@ extension TaskItem {
         isDone = done
         completedAt = done ? Date() : nil
         if done {
-            for subtask in subtasks ?? [] { subtask.isDone = true }
+            for subtask in subtasks ?? [] where !subtask.isDone {
+                subtask.isDone = true
+                subtask.completedAt = Date()
+            }
         }
     }
 

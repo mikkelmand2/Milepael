@@ -159,3 +159,40 @@ struct TagEditor: View {
         newTag = ""
     }
 }
+
+/// Lille rødt flag-mærke for høj prioritet.
+struct PriorityBadge: View {
+    var compact = false
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "flag.fill")
+            if !compact { Text("Høj") }
+        }
+        .font(.caption2.weight(.bold))
+        .foregroundStyle(Theme.priorityHigh)
+        .padding(.horizontal, compact ? 5 : 7)
+        .padding(.vertical, 3)
+        .background(Theme.priorityHigh.opacity(0.14), in: Capsule())
+        .accessibilityLabel("Høj prioritet")
+    }
+}
+
+/// Farvet pille med en underopgaves termin. Tydelig når den er tæt på.
+struct SubtaskDuePill: View {
+    let subtask: SubTask
+
+    var body: some View {
+        let urgency = subtask.urgency
+        let soon = subtask.isSoon
+        HStack(spacing: 4) {
+            if soon { Image(systemName: urgency.icon) }
+            Text(subtask.isDone ? "Færdig" : DeadlineText.relative(to: subtask.dueDate))
+        }
+        .font(.caption2.weight(.bold))
+        .foregroundStyle(subtask.isDone ? Color.secondary : urgency.color)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
+        .background((subtask.isDone ? Color.secondary : urgency.color).opacity(soon ? 0.16 : 0.08), in: Capsule())
+    }
+}

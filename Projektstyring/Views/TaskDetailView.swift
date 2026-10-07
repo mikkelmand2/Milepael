@@ -166,10 +166,10 @@ struct DetailHeader: View {
                 if task.priority == .high {
                     Label("Høj prioritet", systemImage: "flag.fill")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.priorityHigh)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(Theme.surfaceRaised, in: Capsule())
+                        .background(Theme.priorityHigh.opacity(0.14), in: Capsule())
                 }
             }
 
@@ -274,17 +274,22 @@ struct SubtaskRow: View {
             .sensoryFeedback(.selection, trigger: subtask.isDone)
             .accessibilityLabel(subtask.isDone ? "Markér som ikke færdig" : "Markér som færdig")
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(subtask.title)
-                    .foregroundStyle(subtask.isDone ? .secondary : .primary)
-                    .strikethrough(subtask.isDone)
-                HStack(spacing: 4) {
-                    Text(subtask.isDone ? "Færdig" : DeadlineText.relative(to: subtask.dueDate))
-                    Text("·")
-                    Text(subtask.dueDate, format: .dateTime.day().month(.wide).year())
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 6) {
+                    Text(subtask.title)
+                        .fontWeight(subtask.isSoon ? .semibold : .regular)
+                        .foregroundStyle(subtask.isDone ? .secondary : .primary)
+                        .strikethrough(subtask.isDone)
+                    if subtask.priority == .high && !subtask.isDone {
+                        PriorityBadge()
+                    }
                 }
-                .font(.caption.weight(.medium))
-                .foregroundStyle(subtask.isDone ? Color.secondary : urgency.color)
+                HStack(spacing: 6) {
+                    SubtaskDuePill(subtask: subtask)
+                    Text(subtask.dueDate, format: .dateTime.day().month(.wide).year())
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())

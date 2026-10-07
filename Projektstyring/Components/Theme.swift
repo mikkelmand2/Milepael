@@ -9,6 +9,9 @@ enum Theme {
     static let accentDeep = Color(light: 0x6A47C9, dark: 0xA78BF0)
     static let accentSoft = Color(light: 0xE2E5F8, dark: 0x3A3D55)
 
+    /// Høj prioritet: rødt flag, som i Påmindelser.
+    static let priorityHigh = Color(light: 0xD2453F, dark: 0xF2766C)
+
     /// Baggrund: #2E2E2E i mørk, varm off-white i lys.
     static let background = Color(light: 0xF2F2F7, dark: 0x2E2E2E)
     /// Kort og felter ovenpå baggrunden.

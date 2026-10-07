@@ -239,6 +239,7 @@ struct SubtaskEditor: View {
 
     @State private var title = ""
     @State private var dueDate = Date()
+    @State private var priority: Priority = .normal
     @State private var didLoad = false
     @FocusState private var titleFocused: Bool
 
@@ -278,6 +279,16 @@ struct SubtaskEditor: View {
                     Text("Termin")
                 } footer: {
                     Text(DeadlineText.relative(to: dueDate))
+                }
+
+                Section("Prioritet") {
+                    Picker("Prioritet", selection: $priority) {
+                        ForEach(Priority.allCases) { option in
+                            Text(option.label).tag(option)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .themedRow()
                 }
 
                 if let subtask {
@@ -320,6 +331,7 @@ struct SubtaskEditor: View {
         if let subtask {
             title = subtask.title
             dueDate = subtask.dueDate
+            priority = subtask.priority
         } else {
             dueDate = min(parent.dueDate, Date().adding(days: 7))
             titleFocused = true
@@ -330,8 +342,9 @@ struct SubtaskEditor: View {
         if let subtask {
             subtask.title = trimmedTitle
             subtask.dueDate = dueDate
+            subtask.priority = priority
         } else {
-            let newSubtask = SubTask(title: trimmedTitle, dueDate: dueDate)
+            let newSubtask = SubTask(title: trimmedTitle, dueDate: dueDate, priority: priority)
             context.insert(newSubtask)
             withAnimation(.snappy) {
                 parent.addSubtask(newSubtask)

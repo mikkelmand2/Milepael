@@ -10,6 +10,7 @@ struct TaskCard: View {
 
     var body: some View {
         let urgency = task.urgency
+        let isHigh = task.priority == .high && !task.isDone
 
         HStack(spacing: 14) {
             ZStack {
@@ -33,17 +34,15 @@ struct TaskCard: View {
             .frame(width: 54, height: 54)
 
             VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 6) {
-                    if task.priority == .high {
-                        Image(systemName: "flag.fill")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(task.title)
                         .font(.headline)
                         .foregroundStyle(task.isDone ? .secondary : .primary)
                         .strikethrough(task.isDone)
                         .lineLimit(2)
+                    if isHigh {
+                        PriorityBadge()
+                    }
                 }
 
                 HStack(spacing: 4) {
@@ -56,13 +55,7 @@ struct TaskCard: View {
                 .foregroundStyle(urgency.color)
 
                 if !task.isDone, let next = task.nextOpenSubtask {
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.turn.down.right")
-                        Text("Næste: \(next.title)")
-                    }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    nextSubtaskLine(next)
                 }
 
                 if showNotes && !task.notes.isEmpty {
@@ -99,15 +92,42 @@ struct TaskCard: View {
         .overlay(alignment: .leading) {
             // Farvet kant i venstre side viser, hvor meget opgaven haster.
             Capsule()
-                .fill(urgency.color.gradient)
+                .fill(task.effectiveUrgency.color.gradient)
                 .frame(width: 4)
                 .padding(.vertical, 14)
                 .padding(.leading, 6)
         }
         .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.06 : 0.05), lineWidth: 1)
+                .strokeBorder(isHigh ? Theme.priorityHigh.opacity(0.55)
+                                     : Color.primary.opacity(colorScheme == .dark ? 0.06 : 0.05),
+                              lineWidth: isHigh ? 1.5 : 1)
         )
         .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+
+    /// Næste underopgave. Står med farve og ikon, når den er tæt på.
+    @ViewBuilder
+    private func nextSubtaskLine(_ next: SubTask) -> some View {
+        let soonCount = task.soonSubtasks.count
+        HStack(spacing: 6) {
+            Image(systemName: "arrow.turn.down.right")
+                .foregroundStyle(.secondary)
+            Text(next.title)
+                .foregroundStyle(next.isSoon ? .primary : .secondary)
+                .fontWeight(next.isSoon ? .semibold : .regular)
+                .lineLimit(1)
+            if next.priority == .high {
+                PriorityBadge(compact: true)
+            }
+            SubtaskDuePill(subtask: next)
+                .layoutPriority(1)
+            if soonCount > 1 {
+                Text("+\(soonCount - 1)")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(next.urgency.color)
+            }
+        }
+        .font(.caption)
     }
 }

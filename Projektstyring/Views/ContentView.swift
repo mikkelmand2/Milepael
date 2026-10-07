@@ -9,6 +9,7 @@ struct ContentView: View {
     @AppStorage(SettingsKey.showTagsOnCards) private var showTags = true
     @State private var filter: Filter = .active
     @State private var selectedTag: String?
+    @State private var onlyHighPriority = false
     @State private var searchText = ""
     @State private var path: [TaskItem] = []
     @State private var showingNewTask = false
@@ -53,7 +54,9 @@ struct ContentView: View {
             let passesTag = selectedTag.map { tag in
                 task.tags.contains { $0.caseInsensitiveCompare(tag) == .orderedSame }
             } ?? true
-            return passesFilter && passesTag && task.matches(search: searchText)
+            let passesPriority = !onlyHighPriority || task.priority == .high
+                || (task.subtasks ?? []).contains { $0.priority == .high && !$0.isDone }
+            return passesFilter && passesTag && passesPriority && task.matches(search: searchText)
         }
     }
 
@@ -61,7 +64,11 @@ struct ContentView: View {
         let groups = Dictionary(grouping: filteredTasks) { $0.urgency }
         return Urgency.allCases.compactMap { urgency in
             guard let items = groups[urgency], !items.isEmpty else { return nil }
-            return TaskSection(urgency: urgency, tasks: items.sorted { $0.dueDate < $1.dueDate })
+            // Høj prioritet øverst i hver gruppe, derefter efter deadline.
+            return TaskSection(urgency: urgency, tasks: items.sorted { a, b in
+                if a.priority != b.priority { return a.priority.rawValue > b.priority.rawValue }
+                return a.dueDate < b.dueDate
+            })
         }
     }
 
@@ -74,6 +81,11 @@ struct ContentView: View {
                     }
                     .plainRow(top: 8, bottom: 8)
 
+                    if filter != .done && searchText.isEmpty {
+                        FocusCard(tasks: tasks, onOpen: { path.append($0) }, onToggle: toggleSubtask)
+                            .plainRow(top: 4, bottom: 8)
+                    }
+
                     Picker("Vis", selection: $filter.animation(.snappy)) {
                         ForEach(Filter.allCases) { option in
                             Text(option.rawValue).tag(option)
@@ -82,7 +94,7 @@ struct ContentView: View {
                     .pickerStyle(.segmented)
                     .plainRow(top: 4, bottom: 4)
 
-                    if showTags && !allTags.isEmpty {
+                    if (showTags && !allTags.isEmpty) || hasHighPriority {
                         tagFilter
                             .plainRow(top: 2, bottom: 2, horizontal: 0)
                     }
@@ -174,7 +186,22 @@ struct ContentView: View {
     private var tagFilter: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(allTags, id: \.self) { tag in
+                if hasHighPriority {
+                    Button {
+                        withAnimation(.snappy) { onlyHighPriority.toggle() }
+                    } label: {
+                        Label("Høj prioritet", systemImage: "flag.fill")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(onlyHighPriority ? Color(hex: 0xFBFAFC) : Theme.priorityHigh)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(onlyHighPriority ? Theme.priorityHigh : Theme.priorityHigh.opacity(0.14),
+                                        in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .sensoryFeedback(.selection, trigger: onlyHighPriority)
+                }
+                ForEach(showTags ? allTags : [], id: \.self) { tag in
                     let isSelected = selectedTag == tag
                     Button {
                         withAnimation(.snappy) {
@@ -227,6 +254,28 @@ struct ContentView: View {
             } label: {
                 Label(task.isDone ? "Genåbn" : "Markér som færdig",
                       systemImage: task.isDone ? "arrow.uturn.backward" : "checkmark.circle")
+            }
+            if !task.isDone {
+                Menu {
+                    Button("1 dag") { postpone(task, days: 1) }
+                    Button("1 uge") { postpone(task, days: 7) }
+                    Button("1 måned") { postpone(task, days: 30) }
+                } label: {
+                    Label("Udsæt deadline", systemImage: "calendar.badge.clock")
+                }
+            }
+            Button {
+                withAnimation(.snappy) {
+                    task.priority = task.priority == .high ? .normal : .high
+                }
+            } label: {
+                Label(task.priority == .high ? "Fjern høj prioritet" : "Giv høj prioritet",
+                      systemImage: task.priority == .high ? "flag.slash" : "flag.fill")
+            }
+            Button {
+                duplicate(task)
+            } label: {
+                Label("Duplikér", systemImage: "plus.square.on.square")
             }
             Button(role: .destructive) {
                 delete(task)
@@ -284,6 +333,46 @@ struct ContentView: View {
             task.setDone(!wasDone)
         }
         if !wasDone { celebrate += 1 }
+    }
+
+    private func toggleSubtask(_ subtask: SubTask) {
+        guard let parent = subtask.parent else { return }
+        let completedTask = withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
+            parent.toggleSubtask(subtask)
+        }
+        if completedTask { celebrate += 1 }
+    }
+
+    private var hasHighPriority: Bool {
+        tasks.contains { !$0.isDone && ($0.priority == .high
+            || ($0.subtasks ?? []).contains { $0.priority == .high && !$0.isDone }) }
+    }
+
+    /// Skubber deadline (og åbne underopgaver) frem.
+    private func postpone(_ task: TaskItem, days: Int) {
+        withAnimation(.snappy) {
+            task.dueDate = task.dueDate.adding(days: days)
+            for subtask in task.subtasks ?? [] where !subtask.isDone {
+                subtask.dueDate = subtask.dueDate.adding(days: days)
+            }
+        }
+    }
+
+    /// Laver en kopi med åbne underopgaver, fx til tilbagevendende projekter.
+    private func duplicate(_ task: TaskItem) {
+        let copy = TaskItem(title: "\(task.title) (kopi)",
+                            notes: task.notes,
+                            dueDate: task.dueDate,
+                            priority: task.priority)
+        copy.tags = task.tags
+        withAnimation(.snappy) {
+            context.insert(copy)
+            for subtask in task.sortedSubtasks {
+                let newSubtask = SubTask(title: subtask.title, dueDate: subtask.dueDate, priority: subtask.priority)
+                context.insert(newSubtask)
+                copy.addSubtask(newSubtask)
+            }
+        }
     }
 
     private func delete(_ task: TaskItem) {
@@ -400,6 +489,8 @@ struct SummaryHeader: View {
 
             UrgencyBar(counts: counts)
 
+            WeekStatsLine(tasks: tasks)
+
             HStack(spacing: 6) {
                 ForEach(Urgency.activeCases) { urgency in
                     let count = counts[urgency] ?? 0
@@ -461,6 +552,129 @@ struct UrgencyBar: View {
         .frame(height: 10)
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: counts)
         .accessibilityHidden(true)
+    }
+}
+
+/// "Denne uge: 2 opgaver og 5 underopgaver færdige".
+struct WeekStatsLine: View {
+    let tasks: [TaskItem]
+
+    var body: some View {
+        let calendar = Calendar.current
+        let start = calendar.dateInterval(of: .weekOfYear, for: Date())?.start ?? Date()
+        let doneTasks = tasks.filter { ($0.completedAt ?? .distantPast) >= start }.count
+        let doneSubtasks = tasks.flatMap { $0.subtasks ?? [] }
+            .filter { $0.isDone && ($0.completedAt ?? .distantPast) >= start }.count
+
+        HStack(spacing: 6) {
+            Image(systemName: "chart.bar.fill")
+                .foregroundStyle(Theme.accent)
+            Text("Denne uge:")
+                .foregroundStyle(.secondary)
+            Text("\(doneTasks) \(doneTasks == 1 ? "opgave" : "opgaver") og \(doneSubtasks) \(doneSubtasks == 1 ? "underopgave" : "underopgaver") færdige")
+                .fontWeight(.semibold)
+                .contentTransition(.numericText())
+        }
+        .font(.footnote)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+    }
+}
+
+/// "Haster nu": underopgaver der er over tid eller forfalder inden for 7 dage.
+struct FocusCard: View {
+    let tasks: [TaskItem]
+    var onOpen: (TaskItem) -> Void
+    var onToggle: (SubTask) -> Void
+
+    private let maxRows = 4
+
+    var body: some View {
+        let items = tasks.filter { !$0.isDone }
+            .flatMap { $0.soonSubtasks }
+            .sorted { a, b in
+                if a.urgency != b.urgency { return a.urgency.rawValue < b.urgency.rawValue }
+                if a.priority != b.priority { return a.priority.rawValue > b.priority.rawValue }
+                return a.dueDate < b.dueDate
+            }
+
+        if !items.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 8) {
+                    Image(systemName: "bolt.fill")
+                        .foregroundStyle(items[0].urgency.color)
+                    Text("Haster nu")
+                        .font(.headline)
+                    Text("\(items.count)")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(items[0].urgency.color)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(items[0].urgency.color.opacity(0.15), in: Capsule())
+                    Spacer()
+                    Text("Underopgaver")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
+
+                ForEach(items.prefix(maxRows)) { subtask in
+                    HStack(spacing: 12) {
+                        Button {
+                            onToggle(subtask)
+                        } label: {
+                            Image(systemName: subtask.isDone ? "checkmark.circle.fill" : "circle")
+                                .font(.title3)
+                                .foregroundStyle(subtask.urgency.color)
+                                .contentTransition(.symbolEffect(.replace))
+                        }
+                        .buttonStyle(.plain)
+                        .sensoryFeedback(.selection, trigger: subtask.isDone)
+                        .accessibilityLabel("Markér \(subtask.title) som færdig")
+
+                        Button {
+                            if let parent = subtask.parent { onOpen(parent) }
+                        } label: {
+                            HStack(spacing: 8) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack(spacing: 6) {
+                                        Text(subtask.title)
+                                            .font(.subheadline.weight(.semibold))
+                                            .foregroundStyle(.primary)
+                                            .lineLimit(1)
+                                        if subtask.priority == .high {
+                                            PriorityBadge(compact: true)
+                                        }
+                                    }
+                                    Text(subtask.parent?.title ?? "")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                }
+                                Spacer(minLength: 4)
+                                SubtaskDuePill(subtask: subtask)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                if items.count > maxRows {
+                    Text("+ \(items.count - maxRows) flere")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(16)
+            .background(Theme.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(alignment: .leading) {
+                Capsule()
+                    .fill(items[0].urgency.color.gradient)
+                    .frame(width: 4)
+                    .padding(.vertical, 16)
+                    .padding(.leading, 6)
+            }
+        }
     }
 }
 
