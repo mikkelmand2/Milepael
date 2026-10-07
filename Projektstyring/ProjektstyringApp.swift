@@ -26,6 +26,7 @@ struct ProjektstyringApp: App {
                     _ = try? await UNUserNotificationCenter.current()
                         .requestAuthorization(options: [.alert, .sound, .badge])
                     ReminderScheduler.reschedule(context: container.mainContext)
+                    WidgetSync.update(context: container.mainContext)
                 }
         }
         .modelContainer(container)
@@ -34,6 +35,7 @@ struct ProjektstyringApp: App {
             if phase == .background {
                 try? container.mainContext.save()
                 ReminderScheduler.reschedule(context: container.mainContext)
+                WidgetSync.update(context: container.mainContext)
             }
         }
     }

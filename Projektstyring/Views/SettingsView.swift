@@ -13,6 +13,11 @@ struct SettingsView: View {
     @AppStorage(SettingsKey.reminderHour) private var reminderHour = 9
     @AppStorage(SettingsKey.autoCloseCalendar) private var autoCloseCalendar = true
 
+    @State private var exportDocument: BackupDocument?
+    @State private var showingExporter = false
+    @State private var showingImporter = false
+    @State private var backupMessage: String?
+
     var body: some View {
         NavigationStack {
             Form {
@@ -39,6 +44,25 @@ struct SettingsView: View {
                     Text("Forsiden")
                 } footer: {
                     Text("Slå fra for et renere overblik. Noter og mærkater kan altid ses inde i opgaven.")
+                }
+
+                Section {
+                    Button {
+                        exportBackup()
+                    } label: {
+                        Label("Gem sikkerhedskopi", systemImage: "square.and.arrow.up")
+                    }
+                    .themedRow()
+                    Button {
+                        showingImporter = true
+                    } label: {
+                        Label("Gendan fra sikkerhedskopi", systemImage: "square.and.arrow.down")
+                    }
+                    .themedRow()
+                } header: {
+                    Text("Sikkerhedskopi")
+                } footer: {
+                    Text("Gemmer alle opgaver og underopgaver som én fil, fx i iCloud Drive. Ved gendannelse bliver opgaverne lagt ind igen, og intet bliver slettet.")
                 }
 
                 Section {
@@ -91,7 +115,51 @@ struct SettingsView: View {
             .onChange(of: reminderHour) { _, _ in
                 ReminderScheduler.reschedule(context: context)
             }
+            .fileExporter(isPresented: $showingExporter,
+                          document: exportDocument,
+                          contentType: .json,
+                          defaultFilename: Backup.defaultFilename) { result in
+                if case .success = result {
+                    backupMessage = "Sikkerhedskopien er gemt."
+                } else if case .failure(let error) = result {
+                    backupMessage = "Kunne ikke gemme: \(error.localizedDescription)"
+                }
+            }
+            .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.json]) { result in
+                importBackup(result)
+            }
+            .alert("Sikkerhedskopi", isPresented: Binding(
+                get: { backupMessage != nil },
+                set: { if !$0 { backupMessage = nil } })) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(backupMessage ?? "")
+            }
         }
         .presentationBackground(Theme.background)
+    }
+
+    private func exportBackup() {
+        do {
+            exportDocument = BackupDocument(data: try Backup.export(context: context))
+            showingExporter = true
+        } catch {
+            backupMessage = "Kunne ikke lave sikkerhedskopien: \(error.localizedDescription)"
+        }
+    }
+
+    private func importBackup(_ result: Result<URL, Error>) {
+        do {
+            let url = try result.get()
+            let access = url.startAccessingSecurityScopedResource()
+            defer { if access { url.stopAccessingSecurityScopedResource() } }
+            let data = try Data(contentsOf: url)
+            let restored = try Backup.restore(data, context: context)
+            ReminderScheduler.reschedule(context: context)
+            WidgetSync.update(context: context)
+            backupMessage = "Gendannet: \(restored.added) nye og \(restored.updated) opdaterede opgaver."
+        } catch {
+            backupMessage = "Filen kunne ikke læses. Er det en sikkerhedskopi fra Milepæl?"
+        }
     }
 }
