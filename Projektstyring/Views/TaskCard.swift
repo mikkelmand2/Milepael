@@ -37,7 +37,7 @@ struct TaskCard: View {
                     if task.priority == .high {
                         Image(systemName: "flag.fill")
                             .font(.caption)
-                            .foregroundStyle(Theme.accent)
+                            .foregroundStyle(.secondary)
                     }
                     Text(task.title)
                         .font(.headline)
@@ -104,7 +104,10 @@ struct TaskCard: View {
                 .padding(.vertical, 14)
                 .padding(.leading, 6)
         }
-        .shadow(color: .black.opacity(colorScheme == .dark ? 0.25 : 0.06), radius: 10, y: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.06 : 0.05), lineWidth: 1)
+        )
         .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }

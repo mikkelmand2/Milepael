@@ -166,10 +166,10 @@ struct DetailHeader: View {
                 if task.priority == .high {
                     Label("Høj prioritet", systemImage: "flag.fill")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(.secondary)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(Theme.accent.opacity(0.14), in: Capsule())
+                        .background(Theme.surfaceRaised, in: Capsule())
                 }
             }
 

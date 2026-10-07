@@ -2,12 +2,12 @@ import SwiftUI
 
 enum TagStyle {
     private static let palette: [Color] = [
-        Theme.accent,
-        Color(light: 0x8E44AD, dark: 0xC48CFF),
-        Color(light: 0x2F80ED, dark: 0x5AA9FF),
-        Color(light: 0x0E9F8E, dark: 0x4FD1C5),
-        Color(light: 0x2B9348, dark: 0x4CD787),
-        Color(light: 0xD98200, dark: 0xFFAA2B)
+        Color(light: 0x7A6A9A, dark: 0xB2A3D1),
+        Color(light: 0x4A75A8, dark: 0x82A9D6),
+        Color(light: 0x3C8580, dark: 0x7CBDB7),
+        Color(light: 0x3F8A5C, dark: 0x7CC296),
+        Color(light: 0xA0703A, dark: 0xD1A270),
+        Color(light: 0x8A6070, dark: 0xC79AAB)
     ]
 
     /// Samme mærkat får altid samme farve.

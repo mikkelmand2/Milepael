@@ -16,7 +16,6 @@ struct ProgressRing: View {
                 .trim(from: 0, to: max(shown, 0.001))
                 .stroke(color.gradient, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
-                .shadow(color: color.opacity(0.35), radius: lineWidth / 2)
         }
         .padding(lineWidth / 2)
         .onAppear {

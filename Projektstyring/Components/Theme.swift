@@ -3,9 +3,9 @@ import UIKit
 
 /// Appens farver. Mørk tilstand er aldrig helt sort, lys tilstand aldrig helt hvid.
 enum Theme {
-    /// Pink accent, RGB 255, 64, 140.
-    static let accent = Color(hex: 0xFF408C)
-    static let accentSoft = Color(light: 0xFFD9E8, dark: 0x4A2A38)
+    /// Dæmpet rosa accent (afledt af 255, 64, 140), bruges sparsomt.
+    static let accent = Color(light: 0xC2557F, dark: 0xE0809F)
+    static let accentSoft = Color(light: 0xF3E1E8, dark: 0x463A3F)
 
     /// Baggrund: #2E2E2E i mørk, varm off-white i lys.
     static let background = Color(light: 0xF3F1F4, dark: 0x2E2E2E)

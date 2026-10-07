@@ -4,7 +4,7 @@ En gratis, enkel iPhone-app til projektstyring. Den er bygget i SwiftUI og Swift
 
 - Opgaver med lange terminer og underopgaver, der hver har deres egen termin
 - Overblik over, hvor meget opgaverne haster, og farver efter deadline
-- Mørk og lys tilstand (#2E2E2E med pink #FF408C som accentfarve)
+- Mørk og lys tilstand (#2E2E2E med en dæmpet rosa accentfarve)
 - Mærkater og noter, som du kan vælge at bruge og skjule
 - Lokale påmindelser
 

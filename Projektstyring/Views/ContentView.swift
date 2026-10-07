@@ -267,8 +267,7 @@ struct ContentView: View {
                 .font(.title2.weight(.bold))
                 .foregroundStyle(.white)
                 .frame(width: 62, height: 62)
-                .background(Circle().fill(Theme.accent.gradient))
-                .shadow(color: Theme.accent.opacity(0.45), radius: 14, y: 6)
+                .background(Circle().fill(Theme.accent))
         }
         .buttonStyle(PressableButtonStyle(scale: 0.88))
         .sensoryFeedback(.impact(weight: .medium), trigger: showingNewTask)
@@ -375,7 +374,7 @@ struct SummaryHeader: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 16) {
                 ZStack {
-                    ProgressRing(progress: overall, color: Theme.accent, lineWidth: 10)
+                    ProgressRing(progress: overall, color: Color.primary.opacity(0.75), lineWidth: 10)
                     Text(overall, format: .percent.precision(.fractionLength(0)))
                         .font(.system(.headline, design: .rounded, weight: .bold))
                         .contentTransition(.numericText(value: overall))
@@ -433,7 +432,6 @@ struct SummaryHeader: View {
         }
         .padding(16)
         .background(Theme.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
     }
 }
 
@@ -501,7 +499,7 @@ struct EmptyStateView: View {
         VStack(spacing: 14) {
             Image(systemName: icon)
                 .font(.system(size: 56))
-                .foregroundStyle(Theme.accent.gradient)
+                .foregroundStyle(.secondary)
                 .symbolEffect(.bounce, value: bounce)
             Text(title)
                 .font(.title3.bold())
