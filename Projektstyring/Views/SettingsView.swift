@@ -72,7 +72,7 @@ struct SettingsView: View {
                     Task {
                         _ = try? await UNUserNotificationCenter.current()
                             .requestAuthorization(options: [.alert, .sound, .badge])
-                        await ReminderScheduler.reschedule(context: context)
+                        ReminderScheduler.reschedule(context: context)
                     }
                 } else {
                     ReminderScheduler.reschedule(context: context)

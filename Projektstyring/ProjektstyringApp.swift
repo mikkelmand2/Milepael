@@ -25,7 +25,7 @@ struct ProjektstyringApp: App {
                 .task {
                     _ = try? await UNUserNotificationCenter.current()
                         .requestAuthorization(options: [.alert, .sound, .badge])
-                    await ReminderScheduler.reschedule(context: container.mainContext)
+                    ReminderScheduler.reschedule(context: container.mainContext)
                 }
         }
         .modelContainer(container)

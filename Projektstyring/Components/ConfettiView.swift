@@ -22,10 +22,10 @@ struct ConfettiView: View {
     }
 
     private func burst() {
-        let colors: [Color] = [Theme.accent, Urgency.later.color, Urgency.done.color, Urgency.thisMonth.color, .white]
+        let colors: [Color] = [Theme.accent, Urgency.later.color, Urgency.done.color, Urgency.thisMonth.color, Theme.surface]
         pieces = (0..<80).map { _ in
             ConfettiPiece.Model(
-                color: colors.randomElement() ?? .pink,
+                color: colors.randomElement() ?? Theme.accent,
                 startX: CGFloat.random(in: 0.4...0.6),
                 endX: CGFloat.random(in: -0.1...1.1),
                 peak: CGFloat.random(in: 0.05...0.35),

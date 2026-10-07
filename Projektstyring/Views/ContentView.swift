@@ -265,7 +265,7 @@ struct ContentView: View {
         } label: {
             Image(systemName: "plus")
                 .font(.title2.weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(hex: 0xFBFAFC))
                 .frame(width: 62, height: 62)
                 .background(Circle().fill(Theme.accent))
         }
